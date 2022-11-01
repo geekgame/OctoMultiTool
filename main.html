@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body style="background-color: beige;">
+	
+	<h1>My First Heading</h1>
+	<p>My first paragraph.</p>
+
+	<div>
+		<canvas id="myChart"></canvas>
+	</div>
+
+	<script>
+
+		function RenderNpcMindset(
+			opinion="player",
+			choices=["V_Negative", "Negative", "Neutral", "Positive", "V_Positive"],
+			values=[0,0,0,0,0])
+		{
+
+			const colors_transparent = [
+				"rgba(255, 99, 132, 0.2)",
+				"rgba(54, 162, 235, 0.2)",
+				"rgba(255, 206, 86, 0.2)",
+				"rgba(75, 192, 192, 0.2)",
+				"rgba(153, 102, 255, 0.2)",
+				"rgba(255, 159, 64, 0.2)"
+			];
+
+			const dataset = choices.map((choice, index) => {
+				return {
+					label: choice,
+					data: [values[index]],
+					backgroundColor: colors_transparent[index],
+					borderColor: colors_transparent[index].replace("0.2", "1"),
+					borderWidth: 1,
+				};
+			});
+
+			const labels = [opinion];
+
+			RenderBarChartOverTime(labels, dataset);
+		}
+
+		const data = {
+			labels: [],
+			datasets: []
+		};
+		
+		const config = {
+			type: 'bar',
+			data: data,
+		};
+
+		const myChart = new Chart(
+			document.getElementById('myChart'),
+			config
+		);
+
+		function RenderBarChartOverTime(labels, datasets) {
+			myChart.data.labels = labels;
+			myChart.data.datasets = datasets;
+			myChart.update();	
+		}
+			
+	</script>
+
+	<script>
+
+		const wsUri = "ws://127.0.0.1/";
+		const websocket = new WebSocket(wsUri);
+
+		websocket.onopen = (e) => {
+		};
+
+		websocket.onclose = (e) => {
+		};
+
+		websocket.onmessage = (e) => {
+			const action = e.data.split(":")[0];
+			const data = e.data.split(":")[1];
+
+			switch (action) {
+				case "RenderNpcMindset":
+					const [name,descrs,values] = data.split(";");
+					RenderNpcMindset(name, descrs.split(","), values.split(",").map(v => parseInt(v)));
+					break;
+			}
+		};
+
+		websocket.onerror = (e) => {
+		};
+
+		function doSend(message) {
+			websocket.send(message);
+		}
+
+	</script>
+</body>
+
+</html>
